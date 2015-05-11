@@ -96,6 +96,41 @@ namespace CmdProject
             }
         }
 
+        public DirectoryInfo SearchRoot(DirectoryInfo paramDrInfo)
+        {
+            DriveInfo[] dArr = DriveInfo.GetDrives();
+            DirectoryInfo rd = null;
+
+            foreach(DriveInfo element in dArr)
+            {
+                if(element.ToString().Equals(paramDrInfo.Root.ToString()))
+                {
+                    rd = element.RootDirectory;
+                }
+            }
+            return rd;
+        }
+
+        public bool SearchDirectory(DirectoryInfo paramDrInfo)
+        {
+            bool isExists = false;
+            string dirStr = paramDrInfo.ToString();
+            DirectoryInfo rootDir = SearchRoot(paramDrInfo);
+
+            isExists = SearchSubDirectory(paramDrInfo);
+
+            return isExists;
+        }
+
+        public bool SearchSubDirectory(DirectoryInfo paramDrInfo)
+        {
+            bool isExists = false;
+            
+
+
+            return isExists;
+        }
+
         public void DirFlow(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
         {
             switch (paramStrArr.Length)
@@ -170,10 +205,16 @@ namespace CmdProject
 
         public void CDCommand(string paramStr, ref DirectoryInfo drInfo)
         {
+            DirectoryInfo rDrInfo = null;
 
             if (paramStr.Equals(".."))
             {
-                drInfo = new DirectoryInfo(drInfo.Parent.FullName);
+                drInfo = (drInfo.Name.Length != 2) ? new DirectoryInfo(drInfo.Parent.FullName) : drInfo;
+            }
+            else
+            {
+                rDrInfo = new DirectoryInfo(paramStr);
+                drInfo = (rDrInfo.Exists) ? rDrInfo : drInfo;
             }
 
         }
