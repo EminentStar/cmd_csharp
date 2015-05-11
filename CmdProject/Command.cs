@@ -43,7 +43,7 @@ namespace CmdProject
                 }
                 else if (Regex.IsMatch(strArr[0], @"\bcd\b") || Regex.IsMatch(strArr[0], @"\bcd"))//cd command
                 {
-                    CDFlow(strArr, drives, drInfo);
+                    CDFlow(strArr, drives, ref drInfo);
                 }
                 else if (Regex.IsMatch(strArr[0], @"\bdir\b")) //dir command
                 {
@@ -64,7 +64,7 @@ namespace CmdProject
             string[] newStr = null;
             List<string> tempList = new List<string>();
 
-            foreach(string str in paramStrArr)
+            foreach (string str in paramStrArr)
             {
                 if (!str.Equals(""))
                     tempList.Add(str);
@@ -74,7 +74,7 @@ namespace CmdProject
             return newStr;
         }
 
-        public void CDFlow(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        public void CDFlow(string[] paramStrArr, DriveInfo[] paramDrives, ref DirectoryInfo paramDrInfo)
         {
             paramStrArr = RemoveSpace(paramStrArr);
 
@@ -87,7 +87,7 @@ namespace CmdProject
                     }
                 case 2:
                     {
-                        CDCommand(paramStrArr[1], paramDrInfo);
+                        CDCommand(paramStrArr[1], ref paramDrInfo);
                         break;
                     }
                 default:
@@ -96,7 +96,7 @@ namespace CmdProject
             }
         }
 
-        public void DirFlow(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo )
+        public void DirFlow(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
         {
             switch (paramStrArr.Length)
             {
@@ -164,13 +164,18 @@ namespace CmdProject
                 //    }
                 //}
             }
-            
+
             return dirInfo;
         }
 
-        public void CDCommand(string paramStr, DirectoryInfo drInfo)
+        public void CDCommand(string paramStr, ref DirectoryInfo drInfo)
         {
-            
+
+            if (paramStr.Equals(".."))
+            {
+                drInfo = new DirectoryInfo(drInfo.Parent.FullName);
+            }
+
         }
 
         public void DirCommand(DriveInfo[] drives, DirectoryInfo drInfo)
@@ -192,7 +197,7 @@ namespace CmdProject
 
             //currentDir = GetDirectoryFileSystemInfos(drInfo);
             //parentDir = GetDirectoryFileSystemInfos(drInfo.Parent);
-            
+
             //Console.Write(fInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
             //Console.Write("    <DIR>          ");
             //Console.WriteLine(" " + fInfo);
