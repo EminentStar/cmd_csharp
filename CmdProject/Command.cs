@@ -36,27 +36,47 @@ namespace CmdProject
                 cmdLine = Console.ReadLine();
                 cmdLine = cmdLine.Trim();
                 strArr = cmdLine.Split(new char[] { ' ', '(', ')', ';', ',' });
-
-                if (Regex.IsMatch(strArr[0], @"\b[c|C][l|L][s|s]\.") || strArr[0].Equals("cls", StringComparison.OrdinalIgnoreCase)) //cls command
+                
+                if (strArr.Length == 1 && strArr[0].Equals(""))// just press enter
+                {
+                }
+                else if (IsTypedCls(strArr[0])) //cls command
                 {
                     Console.Clear();
                 }
-                else if (Regex.IsMatch(strArr[0], @"\bcd\b") || Regex.IsMatch(strArr[0], @"\bcd"))//cd command
+                else if (IsTypedCd(strArr[0]))//cd command
                 {
                     CDFlow(strArr, drives, ref drInfo);
                 }
-                else if (Regex.IsMatch(strArr[0], @"\bdir\b")) //dir command
+                else if (IsTypedDir(strArr[0])) //dir command
                 {
                     DirFlow(strArr, drives, drInfo);
                 }
-                else if (strArr.Length == 1 && strArr[0].Equals(""))// just press enter
+                //else if (IsTypedHelp(strArr[0])) //help command
+                else if (strArr[0].Equals("help", StringComparison.OrdinalIgnoreCase))
                 {
+                    HelpFlow();
                 }
                 else
                 {
                     Console.WriteLine("\'{0}\'은<는> 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는 배치 파일이 아닙니다.", strArr[0]);
                 }
             }
+        }
+
+        public Boolean IsTypedDir(string paramStr)
+        {
+            return (paramStr.Equals("dir", StringComparison.OrdinalIgnoreCase) || paramStr.Substring(0, 3).Equals("dir", StringComparison.OrdinalIgnoreCase));
+        }
+
+        public Boolean IsTypedCd(string paramStr)
+        {
+            return (paramStr.Equals("cd", StringComparison.OrdinalIgnoreCase) || paramStr.Substring(0, 2).Equals("cd", StringComparison.OrdinalIgnoreCase));
+        }
+
+        public Boolean IsTypedCls(string paramStr)
+        {
+            return (Regex.IsMatch(paramStr, @"\b[c|C][l|L][s|s]\.") || paramStr.Equals("cls", StringComparison.OrdinalIgnoreCase));
         }
 
         public string[] RemoveSpace(string[] paramStrArr)
@@ -74,6 +94,19 @@ namespace CmdProject
             return newStr;
         }
 
+        public void HelpFlow()
+        {
+            string line;
+            using (StreamReader reader = new StreamReader("../../help_command_text.txt", Encoding.Default, true))
+            {
+                line = reader.ReadLine();
+                while ((line = reader.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
+                }
+            }
+        }
+
         public void CDFlow(string[] paramStrArr, DriveInfo[] paramDrives, ref DirectoryInfo paramDrInfo)
         {
             paramStrArr = RemoveSpace(paramStrArr);
@@ -82,7 +115,7 @@ namespace CmdProject
             {
                 case 1:
                     {
-                        //CDCommand(paramDrives, paramDrInfo);
+                        CDCommand(paramStrArr[0], paramDrives, ref paramDrInfo);
                         break;
                     }
                 case 2:
@@ -96,14 +129,67 @@ namespace CmdProject
             }
         }
 
+        public void CDCommand(string paramStr, DriveInfo[] paramDrives, ref DirectoryInfo drInfo)
+        {
+            DirectoryInfo rDrInfo = null;
+
+            //if the length of paramStr is 2, you've just gotta print the current entire directories
+            if (paramStr.Length == 2)
+            {
+                Console.WriteLine(drInfo);
+            }
+            else if (paramStr.Equals("cd."))
+            {
+            }
+            else if (paramStr.Equals("cd.."))
+            {
+                drInfo = (drInfo.Parent != null) ? new DirectoryInfo(drInfo.Parent.FullName) : drInfo;
+            }
+            else
+            {
+                Console.WriteLine("지정된 경로를 찾을 수 없습니다.");
+            }
+            //if the length of paramStr is over 2, you need to consider whether 
+
+
+            Console.WriteLine();
+        }
+
+        public void CDCommand(string paramStr, ref DirectoryInfo drInfo)
+        {
+            DirectoryInfo rDrInfo = null;
+
+            if (paramStr.Equals("."))
+            {
+
+            }
+            else if (paramStr.Equals(".."))
+            {
+                drInfo = (drInfo.Parent != null) ? new DirectoryInfo(drInfo.Parent.FullName) : drInfo;
+            }
+            else
+            {
+                rDrInfo = new DirectoryInfo(paramStr);
+                drInfo = (rDrInfo.Exists) ? rDrInfo : drInfo;
+            }
+        }
+
+        public int CountDots(string paramStr)
+        {
+            int rv = 0;
+
+
+            return 1;
+        }
+
         public DirectoryInfo SearchRoot(DirectoryInfo paramDrInfo)
         {
             DriveInfo[] dArr = DriveInfo.GetDrives();
             DirectoryInfo rd = null;
 
-            foreach(DriveInfo element in dArr)
+            foreach (DriveInfo element in dArr)
             {
-                if(element.ToString().Equals(paramDrInfo.Root.ToString()))
+                if (element.ToString().Equals(paramDrInfo.Root.ToString()))
                 {
                     rd = element.RootDirectory;
                 }
@@ -125,7 +211,7 @@ namespace CmdProject
         public bool SearchSubDirectory(DirectoryInfo paramDrInfo)
         {
             bool isExists = false;
-            
+
 
 
             return isExists;
@@ -201,22 +287,6 @@ namespace CmdProject
             }
 
             return dirInfo;
-        }
-
-        public void CDCommand(string paramStr, ref DirectoryInfo drInfo)
-        {
-            DirectoryInfo rDrInfo = null;
-
-            if (paramStr.Equals(".."))
-            {
-                drInfo = (drInfo.Name.Length != 2) ? new DirectoryInfo(drInfo.Parent.FullName) : drInfo;
-            }
-            else
-            {
-                rDrInfo = new DirectoryInfo(paramStr);
-                drInfo = (rDrInfo.Exists) ? rDrInfo : drInfo;
-            }
-
         }
 
         public void DirCommand(DriveInfo[] drives, DirectoryInfo drInfo)
@@ -303,6 +373,6 @@ namespace CmdProject
             }
             return strVolumeSerialNumber;
         }
-        //String strVolumeSerial = GetVolumeSerialNumber("C"); //C드라이브의 시리얼 번호 가져오기
+
     }
 }
