@@ -17,26 +17,26 @@ namespace CmdProject
             DriveInfo[] drives = DriveInfo.GetDrives();
             DriveInfo drive = DriveInfo.GetDrives()[0];
 
-            DirectoryInfo[] dirList = null;
-            FileInfo[] fileList = null;
-            FileSystemInfo[] fsList = null;
+            //DirectoryInfo[] dirList = null;
+            //FileInfo[] fileList = null;
+            //FileSystemInfo[] fsList = null;
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMedia"); //put System.Management assembly
             string[] strArr = null;
             string cmdLine = null;
-            string tempStr = null;
-            string SerialNo = null;
-            long fileLen = 0, fileLenSum = 0, freespace = 0;
-            int fileCnt = 0, dirCnt = 0;
+            //string tempStr = null;
+            //string SerialNo = null;
+            //long fileLen = 0, fileLenSum = 0, freespace = 0;
+            //int fileCnt = 0, dirCnt = 0;
 
             // char[] delimiters = { ' ', '(', ')', ':', ';', ',' };
 
             while (true)
             {
-                Console.Write("{0}>", drInfo);
+                Console.Write("{0}>", drInfo.FullName);
                 cmdLine = Console.ReadLine();
                 cmdLine = cmdLine.Trim();
                 strArr = cmdLine.Split(new char[] { ' ', '(', ')', ';', ',' });
-                
+
                 if (strArr.Length == 1 && strArr[0].Equals(""))// just press enter
                 {
                 }
@@ -52,8 +52,11 @@ namespace CmdProject
                 {
                     DirFlow(strArr, drives, drInfo);
                 }
-                //else if (IsTypedHelp(strArr[0])) //help command
-                else if (strArr[0].Equals("help", StringComparison.OrdinalIgnoreCase))
+                else if (strArr[0].Equals("move", StringComparison.OrdinalIgnoreCase))
+                {
+                    MoveFlow(strArr, drives, drInfo);
+                }
+                else if (strArr[0].Equals("help", StringComparison.OrdinalIgnoreCase))//help command
                 {
                     HelpFlow();
                 }
@@ -66,12 +69,18 @@ namespace CmdProject
 
         public Boolean IsTypedDir(string paramStr)
         {
-            return (paramStr.Equals("dir", StringComparison.OrdinalIgnoreCase) || paramStr.Substring(0, 3).Equals("dir", StringComparison.OrdinalIgnoreCase));
+            if (paramStr.Length < 3)
+                return false;
+            else
+                return (paramStr.Equals("dir", StringComparison.OrdinalIgnoreCase) || paramStr.Substring(0, 3).Equals("dir", StringComparison.OrdinalIgnoreCase));
         }
 
         public Boolean IsTypedCd(string paramStr)
         {
-            return (paramStr.Equals("cd", StringComparison.OrdinalIgnoreCase) || paramStr.Substring(0, 2).Equals("cd", StringComparison.OrdinalIgnoreCase));
+            if (paramStr.Length < 2)
+                return false;
+            else
+                return (paramStr.Equals("cd", StringComparison.OrdinalIgnoreCase) || paramStr.Substring(0, 2).Equals("cd", StringComparison.OrdinalIgnoreCase));
         }
 
         public Boolean IsTypedCls(string paramStr)
@@ -127,6 +136,7 @@ namespace CmdProject
                     Console.WriteLine("지정된 경로를 찾을 수 없습니다.\n");
                     break;
             }
+            Console.WriteLine();
         }
 
         public void CDCommand(string paramStr, DriveInfo[] paramDrives, ref DirectoryInfo drInfo)
@@ -145,14 +155,15 @@ namespace CmdProject
             {
                 drInfo = (drInfo.Parent != null) ? new DirectoryInfo(drInfo.Parent.FullName) : drInfo;
             }
+            else if (paramStr.Equals("cd/"))
+            {
+                drInfo = (drInfo.Parent != null) ? drInfo.Root : drInfo;
+            }
             else
             {
                 Console.WriteLine("지정된 경로를 찾을 수 없습니다.");
             }
             //if the length of paramStr is over 2, you need to consider whether 
-
-
-            Console.WriteLine();
         }
 
         public void CDCommand(string paramStr, ref DirectoryInfo drInfo)
@@ -169,52 +180,18 @@ namespace CmdProject
             }
             else
             {
-                rDrInfo = new DirectoryInfo(paramStr);
-                drInfo = (rDrInfo.Exists) ? rDrInfo : drInfo;
-            }
-        }
+                string path = Path.Combine(@drInfo.FullName, @paramStr);
+                rDrInfo = new DirectoryInfo(path);
 
-        public int CountDots(string paramStr)
-        {
-            int rv = 0;
-
-
-            return 1;
-        }
-
-        public DirectoryInfo SearchRoot(DirectoryInfo paramDrInfo)
-        {
-            DriveInfo[] dArr = DriveInfo.GetDrives();
-            DirectoryInfo rd = null;
-
-            foreach (DriveInfo element in dArr)
-            {
-                if (element.ToString().Equals(paramDrInfo.Root.ToString()))
+                if (rDrInfo.Exists)
                 {
-                    rd = element.RootDirectory;
+                    drInfo = rDrInfo;
+                }
+                else
+                {
+                    Console.WriteLine("지정된 경로를 찾을 수 없습니다.");
                 }
             }
-            return rd;
-        }
-
-        public bool SearchDirectory(DirectoryInfo paramDrInfo)
-        {
-            bool isExists = false;
-            string dirStr = paramDrInfo.ToString();
-            DirectoryInfo rootDir = SearchRoot(paramDrInfo);
-
-            isExists = SearchSubDirectory(paramDrInfo);
-
-            return isExists;
-        }
-
-        public bool SearchSubDirectory(DirectoryInfo paramDrInfo)
-        {
-            bool isExists = false;
-
-
-
-            return isExists;
         }
 
         public void DirFlow(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
@@ -234,6 +211,7 @@ namespace CmdProject
                     Console.WriteLine("파일을 찾을 수 없습니다.\n");
                     break;
             }
+            Console.WriteLine();
         }
 
         public DriveInfo ShowDriveInfo(DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
@@ -294,17 +272,13 @@ namespace CmdProject
 
             DriveInfo drive = null;
 
-            FileInfo[] fileList = null;
             FileSystemInfo[] fsList = null;
             long fileLen = 0, fileLenSum = 0;
             int fileCnt = 0, dirCnt = 0;
             string tempStr = null;
-            FileSystemInfo currentDir = null;
-            FileSystemInfo parentDir = null;
             drive = ShowDriveInfo(drives, drInfo);
 
             fsList = drInfo.GetFileSystemInfos();
-            fileList = drInfo.GetFiles();
 
             //currentDir = GetDirectoryFileSystemInfos(drInfo);
             //parentDir = GetDirectoryFileSystemInfos(drInfo.Parent);
@@ -315,33 +289,26 @@ namespace CmdProject
 
             foreach (FileSystemInfo fInfo in fsList)
             {
-
-                if (!fInfo.Attributes.ToString().Contains("Hidden"))
+                if (!fInfo.Attributes.HasFlag(FileAttributes.Hidden))//when directories or files are not hidden
                 {
-                    if (fInfo.Attributes.ToString().Contains("Directory"))//when directories or files are not hidden
+                    if (fInfo.Attributes.HasFlag(FileAttributes.Directory))
                     {
-
                         Console.Write(fInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
                         Console.Write("    <DIR>         ");
 
                         dirCnt++;
                     }
-                    else if (fInfo.Attributes.ToString().Contains("Archive"))
+                    else // if(fInfo.Attributes.HasFlag(FileAttributes.Archive))
                     {
-                        for (int i = 0; i < fileList.Length; i++)
-                        {
-                            if (fileList[i].Name.Equals(fInfo.ToString()))
-                            {
-                                fileLen = fileList[i].Length;
-                                fileLenSum += fileLen;
-                                break;
-                            }
-                        }
+                        fileLen = ((FileInfo)fInfo).Length;
+                        fileLenSum += fileLen;
+
                         Console.Write(fInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
                         tempStr = string.Format("{0:N0}", fileLen);
                         Console.Write(tempStr.PadLeft(18, ' '));
                         fileCnt++;
                     }
+
                     Console.WriteLine(" " + fInfo);
                 }
             }
@@ -350,10 +317,9 @@ namespace CmdProject
             Console.WriteLine(fileCnt.ToString().PadLeft(16, ' ') + "개 파일 " + tempStr.PadLeft(19, ' ') + " 바이트");
             tempStr = string.Format("{0:N0}", drive.AvailableFreeSpace);
             Console.WriteLine(dirCnt.ToString().PadLeft(16, ' ') + "개 디렉터리" + tempStr.PadLeft(19, ' ') + " 바이트 남음");
-            Console.WriteLine();
         }
 
-        private String GetVolumeSerialNumber(String Drive)
+        public String GetVolumeSerialNumber(String Drive)
         {
             String strVolumeSerialNumber = String.Empty;
             ObjectQuery objQuery = new ObjectQuery("SELECT VolumeSerialNumber FROM Win32_LogicalDisk WHERE Name='" + Drive + ":'");
@@ -373,6 +339,230 @@ namespace CmdProject
             }
             return strVolumeSerialNumber;
         }
+
+        public void MoveFlow(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        {
+            //first of all, we need to check whether the file name (paramStrArr[1]) which will be moved exists or not in current directory or typed directory
+            //so we need to check typed string has full path 
+
+            switch (paramStrArr.Length)
+            {
+                case 1:
+                    {
+                        Console.WriteLine("명령 구문이 올바르지 않습니다.");
+                        break;
+                    }
+                case 2:
+                    {
+                        MoveCommand(paramStrArr[1], paramDrives, paramDrInfo);
+                        break;
+                    }
+                case 3:
+                    {
+                        MoveCommand(paramStrArr, paramDrives, paramDrInfo);
+                        break;
+                    }
+                default:
+                    break;
+            }
+            Console.WriteLine();
+        }
+
+        public void MoveCommand(string paramStr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        {
+            int fileCnt = CheckMovable(paramStr, paramDrives, paramDrInfo);
+
+            if (fileCnt == 0)
+            {
+                Console.WriteLine("지정된 파일을 찾을 수 없습니다.");
+            }
+            else
+            {
+                Console.WriteLine("\t{0}개 파일을 이동했습니다.", fileCnt);
+            }
+        }
+
+        public void MoveCommand(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        {
+            int fileCnt = CheckMovable(paramStrArr[1], paramDrives, paramDrInfo);
+            //case 1: wrong original file  ("지정된 파일을 찾을 수 없습니다. ")
+            if (fileCnt == 0)
+            {
+                Console.WriteLine("지정된 파일을 찾을 수 없습니다.");
+            }
+            else
+            {
+                SubMoveProcess(paramStrArr, paramDrives, paramDrInfo);
+                //case 2: correct original file -> wrong path
+
+                //case 3: correct original file -> correct path
+
+                //case 4: correct original file -> correct path with file
+                //case 5: correct original file -> wrong path with file
+
+            }
+
+
+            //case 6: correct original file -> correct path
+            //case 7: correct original file -> correct path
+            //case 8: correct original file -> correct path
+        }
+
+        //https://msdn.microsoft.com/en-us/library/vstudio/cc148994(v=vs.100).aspx
+
+        public void SubMoveProcess(string[] paramStrArr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        {
+            FileInfo[] sourceFile = ReturnFileName(paramStrArr[1], paramDrives, paramDrInfo);
+            string targetPath = string.Empty;
+
+            //case 2: correct original file -> wrong path
+
+            //case 3: correct original file -> wrong path with file
+
+            //case 4: correct original file -> correct path
+
+            //case 5: correct original file -> correct path with file
+
+            //when there is no path which refer to current directory
+            if (!IsContainedPath(paramStrArr[2])) 
+            {
+                foreach(FileInfo f in sourceFile)
+                {
+                    //File.Copy();
+                }
+            }
+            //when there is the path which means that you need check whether the directory or file exists
+
+
+
+        }
+        public FileInfo[] ReturnFileName(string paramStr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        {
+            FileInfo[] fileInfo = null;
+            int fileCnt = 0;
+            //Check paramStr is including path
+            if (IsContainedPath(paramStr))
+            {
+                int lastBackSlash = paramStr.LastIndexOf("\\");
+
+                DirectoryInfo drInfo = new DirectoryInfo(paramStr.Substring(0, lastBackSlash));
+                string searchedFile = paramStr.Substring(lastBackSlash + 1, paramStr.Length - lastBackSlash - 1);
+
+                if (drInfo.Exists)
+                    fileInfo = drInfo.GetFiles(searchedFile);
+            }
+            else
+            {
+                fileInfo = paramDrInfo.GetFiles(paramStr);
+            }
+
+            return fileInfo;
+        }
+
+
+        public int CheckMovable(string paramStr, DriveInfo[] paramDrives, DirectoryInfo paramDrInfo)
+        {
+            FileInfo[] fileInfo = null;
+            int fileCnt = 0;
+            //Check paramStr is including path
+            if (IsContainedPath(paramStr))
+            {
+                int lastBackSlash = paramStr.LastIndexOf("\\");
+
+                DirectoryInfo drInfo = new DirectoryInfo(paramStr.Substring(0, lastBackSlash));
+                string searchedFile = paramStr.Substring(lastBackSlash + 1, paramStr.Length - lastBackSlash - 1);
+
+                if (drInfo.Exists)
+                    fileInfo = drInfo.GetFiles(searchedFile);
+            }
+            else
+            {
+                fileInfo = paramDrInfo.GetFiles(paramStr);
+            }
+            if (!(fileInfo == null || fileInfo.Count() == 0))
+            {
+                fileCnt = fileInfo.Count();
+            }
+
+            return fileCnt;
+        }
+
+        public Boolean IsContainedPath(string paramStr)
+        {
+            return paramStr.Contains("\\");
+        }
+
+        public FileInfo[] GetSearchedFileInfo(string paramStr)
+        {
+            int lastBackSlash = paramStr.LastIndexOf("\\");
+            DirectoryInfo drInfo = new DirectoryInfo(paramStr.Substring(0, lastBackSlash));
+            string searchedFile = paramStr.Substring(lastBackSlash + 1, paramStr.Length - lastBackSlash - 1);
+            FileInfo[] fileInfo = drInfo.GetFiles(searchedFile);
+
+            if (fileInfo != null)
+            {
+                return fileInfo;
+            }
+            else
+            {
+                return fileInfo = new FileInfo[1];
+            }
+        }
+
+        public Boolean IsExistsFile(string paramFile, DirectoryInfo paramDrInfo)
+        {
+            Boolean isExists = false;
+            FileSystemInfo[] fsInfoList = paramDrInfo.GetFileSystemInfos();
+
+            foreach (FileSystemInfo element in fsInfoList)
+            {
+                if (element.Attributes.HasFlag(FileAttributes.Archive) && element.Name.ToString().Equals(paramFile))
+                {
+                    isExists = true;
+                    break;
+                }
+            }
+            return isExists;
+        }
+
+        //public DirectoryInfo SearchRoot(DirectoryInfo paramDrInfo)
+        //{
+        //    DriveInfo[] dArr = DriveInfo.GetDrives();
+        //    DirectoryInfo rd = null;
+
+        //    foreach (DriveInfo element in dArr)
+        //    {
+        //        if (element.ToString().Equals(paramDrInfo.Root.ToString()))
+        //        {
+        //            rd = element.RootDirectory;
+        //        }
+        //    }
+        //    return rd;
+        //}
+
+        //public Boolean SearchDirectory(DirectoryInfo paramDrInfo)
+        //{
+        //    Boolean isExists = false;
+        //    string dirStr = paramDrInfo.ToString();
+        //    DirectoryInfo rootDir = SearchRoot(paramDrInfo);
+
+        //    isExists = SearchSubDirectory(paramDrInfo);
+
+        //    return isExists;
+        //}
+
+        //public Boolean SearchSubDirectory(DirectoryInfo paramDrInfo)
+        //{
+        //    Boolean isExists = false;
+        //    DirectoryInfo[] subDrInfo = paramDrInfo.GetDirectories();
+
+        //    foreach(DirectoryInfo element in subDrInfo)
+        //    {
+
+        //    }
+
+        //    return isExists;
+        //}
 
     }
 }
