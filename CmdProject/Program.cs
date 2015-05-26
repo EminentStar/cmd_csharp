@@ -12,24 +12,13 @@ namespace CmdProject
     {
         static void Main(string[] args)
         {
-            Command cmd = new Command();
+            Handler cmd = new Handler();
 
+            Program pro = new Program();
             
             DirectoryInfo drInfo = new DirectoryInfo(@Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
-            //DirectoryInfo testInfo = new DirectoryInfo(@"c:\users\준규\Desktop\test");
-            //if(testInfo.Exists)
-            //{
-            //    Console.WriteLine("true");
-            //}
-            //else
-            //{
-            //    Console.WriteLine("false");
-            //}
-
-
             cmd.CheckCommand(drInfo);
-
         }
     }
 }

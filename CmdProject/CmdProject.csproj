@@ -42,7 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Command.cs" />
+    <Compile Include="CDCommand.cs" />
+    <Compile Include="CopyCommand.cs" />
+    <Compile Include="DirCommand.cs" />
+    <Compile Include="Examination.cs" />
+    <Compile Include="Handler.cs" />
+    <Compile Include="HelpCommand.cs" />
+    <Compile Include="InfoExtraction.cs" />
+    <Compile Include="MoveCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -51,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="help_command_text.txt" />
+    <Content Include="Info\Info.txt" />
     <Content Include="Info\tasks.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
