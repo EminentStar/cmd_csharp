@@ -64,18 +64,22 @@ namespace CmdProject
 
             fsList = drInfo.GetFileSystemInfos();
 
-            //the current directory
-            Console.Write(drInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
-            Console.Write("    <DIR>          ");
-            Console.WriteLine("" + ".");
-            dirCnt++;
+            if (drInfo.Parent != null)
+            {
 
-            //the parent directory of the current directory
-            Console.Write(drInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
-            Console.Write("    <DIR>          ");
-            Console.WriteLine("" + "..");
-            dirCnt++;
 
+                //the current directory
+                Console.Write(drInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
+                Console.Write("    <DIR>          ");
+                Console.WriteLine("" + ".");
+                dirCnt++;
+
+                //the parent directory of the current directory
+                Console.Write(drInfo.LastWriteTime.ToString("yyyy-MM-dd  tt hh:mm"));
+                Console.Write("    <DIR>          ");
+                Console.WriteLine("" + "..");
+                dirCnt++;
+            }
             foreach (FileSystemInfo fInfo in fsList)
             {
                 if (!fInfo.Attributes.HasFlag(FileAttributes.Hidden))//when directories or files are not hidden
